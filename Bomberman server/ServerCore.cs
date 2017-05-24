@@ -20,8 +20,9 @@ namespace Bomberman_server
         public readonly IPEndPoint ipEndPoint;
         public readonly Socket socketListener;
         public readonly List<Socket> socketsList;
-        public List<SendPacketsElement> messagesList;
+        public List<byte> messagesList;
         private System.Timers.Timer timer;
+        private int maxSendedMessages;
 
         public ServerCore(int port, int maxLengthQueue, int sendFrequency)
         {
@@ -34,13 +35,14 @@ namespace Bomberman_server
             this.timer = new System.Timers.Timer();
             this.timer.Interval = sendFrequency;
             this.timer.Elapsed += SendOnTimer;
+            this.maxSendedMessages = 10;
 
 
             this.ipEndPoint = new IPEndPoint(ipAdress, port);
             this.socketListener = new Socket(ipAdress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
             this.socketsList = new List<Socket>();
-            this.messagesList = new List<SendPacketsElement>();
+            this.messagesList = new List<byte>();
 
             try
             {
@@ -57,7 +59,8 @@ namespace Bomberman_server
             lock (messagesList)
             {
                 SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
-                sendArgs.SendPacketsElements = messagesList.ToArray();
+                sendArgs.SetBuffer(messagesList.ToArray(), 0, messagesList.Count);
+               
                 foreach (Socket client in socketsList)
                 {
                     client.SendAsync(sendArgs);
@@ -73,9 +76,21 @@ namespace Bomberman_server
 
         private void ReceiveCallback(object sender, SocketAsyncEventArgs e)
         {
-            messagesList.Add(new SendPacketsElement(e.Buffer));
+            messagesList.AddRange(e.Buffer);
         }
 
+        private void sendTestSequence()
+        {
+            lock (messagesList)
+            {
+                byte[] temp = Encoding.UTF8.GetBytes("azaza");
+
+                messagesList.AddRange(temp);
+                temp = Encoding.UTF8.GetBytes("qwe");
+
+                messagesList.AddRange(temp);
+            }
+        }
         public void StartListen(object state)
         {
             socketListener.Listen(maxLengthQueue);
@@ -84,12 +99,15 @@ namespace Bomberman_server
             while (true)
             {
                 Socket newClient = socketListener.Accept();
+                Console.WriteLine("New user connected to the server");
                 socketsList.Add(newClient);
 
                 SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
                 eventArgs.Completed += ReceiveCallback;
-                eventArgs.SetBuffer(0, bufferSize);
+                byte[] buffer = new byte[bufferSize];
+                eventArgs.SetBuffer(buffer, 0, bufferSize);
                 newClient.ReceiveAsync(eventArgs);
+                sendTestSequence();
             }
         }
     }

@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using Bomberman_client.GameClasses;
+using System.Drawing;
 
 namespace Bomberman_server
 {
@@ -11,11 +13,15 @@ namespace Bomberman_server
     {
         static void Main(string[] args)
         {
+            int width = 514;
+            int height = 369;
             try
             {
-                ServerCore serverCore = new ServerCore(11000, 5, 40);
-                Console.WriteLine("Server has been started. IP - {0}, port - {1}. To end from the program press enter", serverCore.ipHost.AddressList[0], serverCore.port);
-
+                ServerCore serverCore = new ServerCore(11000, 11001, 5, 40);
+                serverCore.gameCoreServer = new GameCoreServer(width, height, new Size(24, 32), new Size(24, 24), new Size(24, 24), new Size(24, 24), new Size(24, 24), (Environment.CurrentDirectory + "\\Resources\\"), serverCore.SendData);
+                serverCore.messageAnalyzer = new Bomberman_client.MessageAnalyzer(serverCore.gameCoreServer);
+                Console.WriteLine("Server has been started. IP - {0}, port - {1}. To end from the program press enter", serverCore.ipHost.AddressList[0], serverCore.portControl);
+                serverCore.gameCoreServer.startCore();
                 ThreadPool.QueueUserWorkItem(serverCore.StartListen);
                 while (Console.ReadKey().Key != ConsoleKey.Enter)
                 { 

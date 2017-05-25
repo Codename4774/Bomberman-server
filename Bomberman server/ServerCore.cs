@@ -7,6 +7,11 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Timers;
+using Bomberman_client.GameClasses;
+using System.Drawing;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
+using Bomberman_client;
 
 namespace Bomberman_server
 {
@@ -14,39 +19,44 @@ namespace Bomberman_server
     {
         public readonly IPHostEntry ipHost;
         public readonly IPAddress ipAdress;
-        public readonly int port;
+        public readonly int portControl;
+        public readonly int portData;
+        
         public readonly int maxLengthQueue;
         private int bufferSize;
-        public readonly IPEndPoint ipEndPoint;
+        public readonly IPEndPoint ipEndPointControl;
+        public readonly IPEndPoint ipEndPointData;
         public readonly Socket socketListener;
+        public readonly UdpClient socketSender;
         public readonly List<Socket> socketsList;
-        public List<byte> messagesList;
-        private System.Timers.Timer timer;
-        private int maxSendedMessages;
+        public GameCoreServer gameCoreServer;
+        public BinaryFormatter serializer;
+        public MessageAnalyzer messageAnalyzer;
+        private int idCounter;
+        
 
-        public ServerCore(int port, int maxLengthQueue, int sendFrequency)
+        public ServerCore(int portControl, int portData, int maxLengthQueue, int sendFrequency)
         {
             this.ipHost = Dns.GetHostEntry("localhost");
 
-            this.port = port;
+            this.portControl = portControl;
             this.maxLengthQueue = maxLengthQueue;
             this.ipAdress = ipHost.AddressList[0];
             this.bufferSize = 2048;
-            this.timer = new System.Timers.Timer();
-            this.timer.Interval = sendFrequency;
-            this.timer.Elapsed += SendOnTimer;
-            this.maxSendedMessages = 10;
+            this.idCounter = 0;
 
 
-            this.ipEndPoint = new IPEndPoint(ipAdress, port);
+            this.ipEndPointControl = new IPEndPoint(ipAdress, portControl);
+            this.ipEndPointData = new IPEndPoint(IPAddress.Any, portData);
+
             this.socketListener = new Socket(ipAdress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            this.socketSender = new UdpClient(portData);
 
             this.socketsList = new List<Socket>();
-            this.messagesList = new List<byte>();
-
+            this.serializer = new BinaryFormatter();
             try
             {
-                socketListener.Bind(ipEndPoint);
+                socketListener.Bind(ipEndPointControl);
             }
             catch(Exception e)
             {
@@ -54,18 +64,20 @@ namespace Bomberman_server
             }
         }
 
-        private void SendOnTimer(object sender, EventArgs e)
+        public void SendData()
         {
-            lock (messagesList)
+            lock (gameCoreServer.buffer)
             {
-                SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
-                sendArgs.SetBuffer(messagesList.ToArray(), 0, messagesList.Count);
-               
+
+                MemoryStream data = new MemoryStream();
+                serializer.Serialize(data, gameCoreServer.buffer);
+
                 foreach (Socket client in socketsList)
                 {
+                    SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
+                    sendArgs.SetBuffer(data.ToArray(), 0, data.ToArray().Length);
                     client.SendAsync(sendArgs);
                 }
-                messagesList.Clear();
             }
         }
 
@@ -73,41 +85,49 @@ namespace Bomberman_server
         {
 
         }
-
         private void ReceiveCallback(object sender, SocketAsyncEventArgs e)
         {
-            messagesList.AddRange(e.Buffer);
+            messageAnalyzer.AnalyzeMessage(e.Buffer);
+            byte[] buffer = new byte[bufferSize];
+            SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
+            eventArgs.Completed += ReceiveCallback;
+
+            eventArgs.SetBuffer(buffer, 0, bufferSize);
+            (sender as Socket).ReceiveAsync(eventArgs);
+
         }
 
-        private void sendTestSequence()
+        private void SendId(Socket client)
         {
-            lock (messagesList)
-            {
-                byte[] temp = Encoding.UTF8.GetBytes("azaza");
-
-                messagesList.AddRange(temp);
-                temp = Encoding.UTF8.GetBytes("qwe");
-
-                messagesList.AddRange(temp);
-            }
+            SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
+            sendArgs.SetBuffer(BitConverter.GetBytes(idCounter), 0, sizeof(int));
+            idCounter++;
+            client.SendAsync(sendArgs);
+        }
+        private void AddPlayerToList()
+        {
+            gameCoreServer.players.Add(new Player(new Point(0, 0), gameCoreServer.playerTexture, gameCoreServer.playerSize, "", gameCoreServer.DeletePlayerFromField, gameCoreServer.bombTexture, gameCoreServer.bombSize, gameCoreServer.DeleteBombFromField, idCounter - 1));
         }
         public void StartListen(object state)
         {
             socketListener.Listen(maxLengthQueue);
-            this.timer.Enabled = true;
 
             while (true)
             {
                 Socket newClient = socketListener.Accept();
                 Console.WriteLine("New user connected to the server");
-                socketsList.Add(newClient);
 
+                socketsList.Add(newClient);
+                SendId(newClient);
+                AddPlayerToList();
+                IPEndPoint tempEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                EndPoint temp = (EndPoint)tempEndPoint;
+                byte[] buffer = new byte[bufferSize];
                 SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
                 eventArgs.Completed += ReceiveCallback;
-                byte[] buffer = new byte[bufferSize];
+
                 eventArgs.SetBuffer(buffer, 0, bufferSize);
                 newClient.ReceiveAsync(eventArgs);
-                sendTestSequence();
             }
         }
     }

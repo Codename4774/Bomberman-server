@@ -7,6 +7,7 @@ using System.Drawing;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class PhysicalObject : Cell
     {
         public readonly Size size;
@@ -20,6 +21,7 @@ namespace Bomberman_client.GameClasses
                 }
             }
         }
+        public int currSpriteOffset;
         public virtual void ChangeMapMatrix(PhysicalMap PhysicalMap)
         {
             for (int i = Y; i < Y + size.Height; i++)
@@ -33,21 +35,24 @@ namespace Bomberman_client.GameClasses
         public delegate void DeleteObjectFunc(PhysicalObject obj);
         protected DeleteObjectFunc deleteObjectFunc;
 
-        public PhysicalObject(Point location, Image texture)
-            : base(location, texture)
+        public PhysicalObject(Point location)
+            : base(location)
         {
-            size = texture.Size;
+           // size = texture.Size;
+            currSpriteOffset = 0;
         }
-        public PhysicalObject(Point location, Image texture, Size size)
-            : base(location, texture)
+        public PhysicalObject(Point location, Size size)
+            : base(location)
         {
             this.size = size;
+            currSpriteOffset = 0;
         }
-        public PhysicalObject(Point location, Image sprite, Size spriteSize, DeleteObjectFunc deleteObjectFunc )
-            : base(location, sprite)
+        public PhysicalObject(Point location, Size spriteSize, DeleteObjectFunc deleteObjectFunc )
+            : base(location)
         {
             this.size = spriteSize;
             this.deleteObjectFunc = deleteObjectFunc;
+            currSpriteOffset = 0;
         }
     }
 }

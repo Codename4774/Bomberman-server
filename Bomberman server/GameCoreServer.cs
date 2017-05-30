@@ -5,55 +5,54 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Drawing;
 using System.Timers;
+using Bomberman_server;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class GameCoreServer
     {
-        private Graphics graphicControl;
-        private BufferedGraphicsContext currentContext = new BufferedGraphicsContext();
-        private BufferedGraphics buffer1, buffer2, currBuffer;
-        public Bitmap buffer;
-        private Color buffColor = new Color();
-
         public delegate void SendFunc();
+        [NonSerialized]
         private SendFunc sendFunc;
 
+        [NonSerialized]
         public PhysicalMap map;
-        public List<Bomb> bombs;
-        public List<Explosion> explosions;
-        public List<PhysicalObject> staticWalls;
-        public List<DynamicWall> dynamicWalls;
+        public ObjectsLists objectsList;
 
-        public List<Player> players;
-
+        [NonSerialized]
         public int delay;
+        [NonSerialized]
         private Timer timer;
-
+        [NonSerialized]
         private ScriptEngine scriptEngine;
-
+        [NonSerialized]
         public Size playerSize;
+        [NonSerialized]
         public Size playerOnDeathSize;
+        [NonSerialized]
         public Size bombSize;
+        [NonSerialized]
         public Size explosionSize;
+        [NonSerialized]
         public Size wallSize;
-       
-        public Image bombTexture;
-        public Image bombExplosionTexture;
-        public Image playerTexture;
-        public Image playerDieTexture;
-        public Image staticWallTexture;
-        public Image dynamicWallTexture;
-        public Image dynamicWallDestroyTexture;
-        public Image explosionCenterTexture;
-        public Image explosionLeftEdgeTexture;
-        public Image explosionRightEdgeTexture;
-        public Image explosionUpEdgeTexture;
-        public Image explosionBottomEdgeTexture;
-        public Image explosionVerticalTexture;
-        public Image explosionHorizontalTexture;
-
-
+       [NonSerialized]
+        public Bitmap bombTexture;
+        [NonSerialized]
+        public Bitmap bombExplosionTexture;
+        [NonSerialized]
+        public Bitmap playerTexture;
+        [NonSerialized]
+        public Bitmap playerDieTexture;
+        [NonSerialized]
+        public Bitmap staticWallTexture;
+        [NonSerialized]
+        public Bitmap dynamicWallTexture;
+        [NonSerialized]
+        public Bitmap dynamicWallDestroyTexture;
+        [NonSerialized]
+        public List<Bitmap> explosionsTexture;
+/*
         public void RedrawFunc()
         {
             currBuffer.Render();
@@ -63,7 +62,8 @@ namespace Bomberman_client.GameClasses
         }
         public void CalcBuff()
         {
-            foreach (Player player in players)
+
+            foreach (Player player in objectsList.players)
             {
                 if (!player.IsDead)
                 {
@@ -71,44 +71,76 @@ namespace Bomberman_client.GameClasses
                     {
                         if (!player.IsDying)
                         {
-                            currBuffer.Graphics.DrawImage(player.GetAnimState(), player.X, player.Y);
+                            currBuffer.Graphics.DrawImage(player.GetAnimState(playerTexture), player.X, player.Y);
                         }
                         else
                         {
-                            currBuffer.Graphics.DrawImage(player.texture, player.X, player.Y);
+                            lock (playerDieTexture)
+                            {
+
+                                currBuffer.Graphics.DrawImage(playerDieTexture, player.X, player.Y, new Rectangle(new Point(player.currSpriteOffset, 0), player.size), GraphicsUnit.Pixel);
+                            }
+                            //currBuffer.Graphics.DrawImage(player.texture, player.X, player.Y);
+
                         }
                     }
                 }
             }
-            lock (bombs)
+            lock (objectsList.bombs)
             {
-                for (int i = 0; i < bombs.Count; i++)
+                for (int i = 0; i < objectsList.bombs.Count; i++)
                 {
-                    lock (bombs[i])
+                    lock (objectsList.bombs[i])
                     {
-                        currBuffer.Graphics.DrawImage(bombs[i].texture, bombs[i].X, bombs[i].Y);
+                        lock (bombTexture)
+                        {
+                            if (objectsList.bombs[i].isBlowedUp)
+                            {
+                                currBuffer.Graphics.DrawImage(bombExplosionTexture, objectsList.bombs[i].X, objectsList.bombs[i].Y, new Rectangle(new Point(objectsList.bombs[i].currSpriteOffset, 0), objectsList.bombs[i].size), GraphicsUnit.Pixel);
+                            }
+                            else
+                            {
+                                currBuffer.Graphics.DrawImage(bombTexture, objectsList.bombs[i].X, objectsList.bombs[i].Y);
+                            }
+                        }
                     }
                 }
             }
-            for (int i = 0; i < explosions.Count; i++)
+            for (int i = 0; i < objectsList.explosions.Count; i++)
             {
-                lock (explosions[i])
+                lock (objectsList.explosions[i])
                 {
-                    explosions[i].DrawExplosion(currBuffer);
+                    objectsList.explosions[i].DrawExplosion(currBuffer, explosionsTexture);
                 }
             }
-            for (int i = 0; i < dynamicWalls.Count; i++)
+            for (int i = 0; i < objectsList.dynamicWalls.Count; i++)
             {
-                lock (dynamicWalls[i])
+                lock (objectsList.dynamicWalls[i])
                 {
-                    currBuffer.Graphics.DrawImage(dynamicWalls[i].texture, dynamicWalls[i].X, dynamicWalls[i].Y);
+                    if (!objectsList.dynamicWalls[i].isBlowedUpNow)
+                    {
+                        lock (dynamicWallTexture)
+                        {
+                            currBuffer.Graphics.DrawImage(dynamicWallTexture, objectsList.dynamicWalls[i].X, objectsList.dynamicWalls[i].Y);
+                        }
+                    }
+                    else
+                    {
+                        lock (dynamicWallDestroyTexture)
+                        {
+                            currBuffer.Graphics.DrawImage(dynamicWallDestroyTexture, objectsList.dynamicWalls[i].X, objectsList.dynamicWalls[i].Y, new Rectangle(new Point(objectsList.dynamicWalls[i].currSpriteOffset, 0), objectsList.dynamicWalls[i].size), GraphicsUnit.Pixel);
+                        }
+                    }
                 }
             }
-            for (int i = 0; i < staticWalls.Count; i++)
+            for (int i = 0; i < objectsList.staticWalls.Count; i++)
             {
-                lock (staticWalls[i])
+                lock (objectsList.staticWalls[i])
                 {
-                    currBuffer.Graphics.DrawImage(staticWalls[i].texture, staticWalls[i].X, staticWalls[i].Y);
+                    lock (staticWallTexture)
+                    {
+                        currBuffer.Graphics.DrawImage(staticWallTexture, objectsList.staticWalls[i].X, objectsList.staticWalls[i].Y);
+                    }
                 }
             }
         }
@@ -124,38 +156,38 @@ namespace Bomberman_client.GameClasses
                 currBuffer = buffer1;
             }
         }
-
+        */
         public void ChangePhysicalState()
         {
-            foreach (Player player in players)
+            foreach (Player player in objectsList.players)
             {
                 if (!player.IsDead)
                 {
                     player.ChangeMapMatrix(map);
                 }
             }
-            for (int i = 0; i < bombs.Count; i++)
+            for (int i = 0; i < objectsList.bombs.Count; i++)
             {
-                bombs[i].ChangeMapMatrix(map);
+                objectsList.bombs[i].ChangeMapMatrix(map);
             }
-            for (int i = 0; i < explosions.Count; i++)
+            for (int i = 0; i < objectsList.explosions.Count; i++)
             {
-                explosions[i].ChangePhysicalMap(map);
+                objectsList.explosions[i].ChangePhysicalMap(map);
             }
-            for (int i = 0; i < dynamicWalls.Count; i++)
+            for (int i = 0; i < objectsList.dynamicWalls.Count; i++)
             {
-                if ((dynamicWalls[i].isWallBlowedUp(map)) && (!dynamicWalls[i].isBlowedUpNow))
+                if ((objectsList.dynamicWalls[i].isWallBlowedUp(map)) && (!objectsList.dynamicWalls[i].isBlowedUpNow))
                 {
-                    dynamicWalls[i].isBlowedUpNow = true;
-                    StartDestroingDynamicWall(dynamicWalls[i]);
+                    objectsList.dynamicWalls[i].isBlowedUpNow = true;
+                    StartDestroingDynamicWall(objectsList.dynamicWalls[i]);
                 }
-                dynamicWalls[i].ChangeMapMatrix(map);
+                objectsList.dynamicWalls[i].ChangeMapMatrix(map);
             }
-            for (int i = 0; i < staticWalls.Count; i++)
+            for (int i = 0; i < objectsList.staticWalls.Count; i++)
             {
-                staticWalls[i].ChangeMapMatrix(map);
+                objectsList.staticWalls[i].ChangeMapMatrix(map);
             }
-            foreach (Player player in players)
+            foreach (Player player in objectsList.players)
             {
                 if (player.isPlayerBlowedUp(map))
                 {
@@ -168,11 +200,11 @@ namespace Bomberman_client.GameClasses
 
         public void TimerEvent(object sender, EventArgs e)
         {
-            foreach (Player player in players)
+            foreach (Player player in objectsList.players)
             {
                 player.OnMove(map);
             }
-            RedrawFunc();
+            //RedrawFunc();
             sendFunc();
             map.ClearCurrMatrix();
             map.SwitchMatrix();
@@ -183,10 +215,7 @@ namespace Bomberman_client.GameClasses
         {
             var temp = player as Player;
 
-            lock (player.texture)
-            {
-                scriptEngine.StartSimpleScript(temp, playerDieTexture, playerOnDeathSize, DeletePlayerFromField, 200, 6);
-            }
+            scriptEngine.StartSimpleScript(temp, playerOnDeathSize, DeletePlayerFromField, 200, 6);
             temp.IsDying = true;
             temp.isMoved = false;
         }
@@ -196,29 +225,29 @@ namespace Bomberman_client.GameClasses
             var temp = player as Player;
 
             temp.IsDead = true;
+            temp.currSpriteOffset = 0;
         }
 
         public void ExplosionBomb(PhysicalObject bomb)
         {
             var temp = bomb as Bomb;
 
-            scriptEngine.StartSimpleScript(temp, bombExplosionTexture, DeleteBombFromField, 100, 3);
+            temp.isBlowedUp = true;
+            scriptEngine.StartSimpleScript(temp, DeleteBombFromField, 100, 3);
         }
 
         public void DeleteBombFromField(object bomb)
         {
             var temp = bomb as Bomb;
 
-            if (bombs.IndexOf(temp) >= 0)
+            if (objectsList.bombs.IndexOf(temp) >= 0)
             {
                 temp.owner.CurrCountBombs--;
-                bombs.Remove(temp);
+                objectsList.bombs.Remove(temp);
 
-                Explosion tempExpl = new Explosion(explosionCenterTexture, explosionUpEdgeTexture, explosionBottomEdgeTexture, explosionLeftEdgeTexture,
-                   explosionRightEdgeTexture, explosionVerticalTexture, explosionHorizontalTexture, explosionSize,
-                   new Point(temp.X, temp.Y), (int)temp.owner.bombLevel, map, DeleteExplosionFromField);
+                Explosion tempExpl = new Explosion(explosionSize, new Point(temp.X, temp.Y), (int)temp.owner.bombLevel, map, DeleteExplosionFromField);
 
-                explosions.Add(tempExpl);
+                objectsList.explosions.Add(tempExpl);
                 scriptEngine.StartExplosion(tempExpl, DeleteExplosionFromField, 100, 7);
 
             }
@@ -228,30 +257,30 @@ namespace Bomberman_client.GameClasses
         {
             var temp = explosion as Explosion;
 
-            explosions.Remove(temp);
+            objectsList.explosions.Remove(temp);
         }
 
         public void StartDestroingDynamicWall(DynamicWall wall)
         {
-            scriptEngine.StartSimpleScript(wall, dynamicWallDestroyTexture, DeleteDynamicWallFromField, 200, 6);
+            scriptEngine.StartSimpleScript(wall, DeleteDynamicWallFromField, 200, 6);
         }
 
         public void DeleteDynamicWallFromField(object wall)
         {
             var temp = wall as DynamicWall;
 
-            if (dynamicWalls.IndexOf(temp) >= 0)
+            if (objectsList.dynamicWalls.IndexOf(temp) >= 0)
             {
-                dynamicWalls.Remove(temp);
+                objectsList.dynamicWalls.Remove(temp);
             }
         }
 
         private void spawnWalls()
         {
-            staticWalls.Add(new PhysicalObject(new Point(50, 50), staticWallTexture, wallSize));
-            dynamicWalls.Add(new DynamicWall(new Point(100, 100), dynamicWallTexture, wallSize));
-            dynamicWalls.Add(new DynamicWall(new Point(124, 100), dynamicWallTexture, wallSize));
-            dynamicWalls.Add(new DynamicWall(new Point(148, 100), dynamicWallTexture, wallSize));
+            objectsList.staticWalls.Add(new PhysicalObject(new Point(50, 50), wallSize));
+            objectsList.dynamicWalls.Add(new DynamicWall(new Point(100, 100), wallSize));
+            objectsList.dynamicWalls.Add(new DynamicWall(new Point(124, 100), wallSize));
+            objectsList.dynamicWalls.Add(new DynamicWall(new Point(148, 100), wallSize));
         }
 
         private void LoadImages(string resDir)
@@ -260,13 +289,15 @@ namespace Bomberman_client.GameClasses
             this.bombExplosionTexture = new Bitmap(resDir + "Bomb\\BombExplosion.png");
             this.playerTexture = new Bitmap(resDir + "Player\\bomberman_new.png");
             this.playerDieTexture = new Bitmap(resDir + "Player\\bomberman_death.png");
-            this.explosionCenterTexture = new Bitmap(resDir + "Explosion\\ExplosionCenter.png");
-            this.explosionUpEdgeTexture= new Bitmap(resDir + "Explosion\\ExplosionUpEdge.png");
-            this.explosionBottomEdgeTexture = new Bitmap(resDir + "Explosion\\ExplosionBottomEdge.png");
-            this.explosionLeftEdgeTexture = new Bitmap(resDir + "Explosion\\ExplosionLeftEdge.png");
-            this.explosionRightEdgeTexture = new Bitmap(resDir + "Explosion\\ExplosionRightEdge.png");
-            this.explosionVerticalTexture = new Bitmap(resDir + "Explosion\\ExplosionVerticalMiddle.png");
-            this.explosionHorizontalTexture = new Bitmap(resDir + "Explosion\\ExplosionHorizontalMiddle.png");
+            //public enum KindExplosionTexture { explosionTextureHorizontalMiddle, explosionTextureLeftEdge, explosionTextureRightEdge, explosionTextureVerticalMiddle, explosionTextureUpEdge, explosionTextureBottomEdge, explosionTextureCenter };
+
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionHorizontalMiddle.png"));
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionLeftEdge.png"));
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionRightEdge.png"));
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionVerticalMiddle.png"));
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionUpEdge.png"));
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionBottomEdge.png"));
+            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionCenter.png"));
             this.staticWallTexture = new Bitmap(resDir + "Walls\\StaticWall.png");
             this.dynamicWallTexture = new Bitmap(resDir + "Walls\\DynamicWall.png");
             this.dynamicWallDestroyTexture = new Bitmap(resDir + "Walls\\DynamicWallDestroy.png");
@@ -283,10 +314,7 @@ namespace Bomberman_client.GameClasses
             )
         {
             this.map = new PhysicalMap(width, height);
-            bombs = new List<Bomb>();
-            explosions = new List<Explosion>();
-            staticWalls = new List<PhysicalObject>();
-            dynamicWalls = new List<DynamicWall>();
+            objectsList = new ObjectsLists();
             this.sendFunc = sendFunc;
 
             timer = new Timer();
@@ -295,14 +323,7 @@ namespace Bomberman_client.GameClasses
             timer.Elapsed += TimerEvent;
 
             scriptEngine = new ScriptEngine();
-            this.players = new List<Player>();
-            this.buffer = new Bitmap(width, height);
-            graphicControl = Graphics.FromImage(buffer);
-            buffer1 = currentContext.Allocate(graphicControl, new Rectangle(0, 0, width, height));
-            buffer2 = currentContext.Allocate(graphicControl, new Rectangle(0, 0, width, height));
-            currBuffer = buffer1;
-            buffColor = Color.ForestGreen;
-
+            this.explosionsTexture = new List<Bitmap>();
 
             this.playerSize = playerSize;
             this.bombSize = bombSize;

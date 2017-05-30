@@ -10,6 +10,7 @@ using System.IO;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class Player : PhysicalObject, GameInterfaces.IMovable
     {
         public enum Direction { UP, DOWN, LEFT, RIGHT };
@@ -70,6 +71,11 @@ namespace Bomberman_client.GameClasses
 
 
 
+        private bool isObjectOnDirection(byte point)
+        {
+            return( (point == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT) || (point == (int)PhysicalMap.KindOfArea.PLAYER) || (point == (int)PhysicalMap.KindOfArea.BOMB) );
+        }
+
         public bool isObjectOnWay(PhysicalMap map)
         {
             lock (map.MapMatrix)
@@ -81,7 +87,7 @@ namespace Bomberman_client.GameClasses
                         {
                             for (int j = X; j < X + size.Width; j++)
                             {
-                                if (map.MapMatrix[Y - 1][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
+                                if (map.MapMatrix[Y - 1][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT )
                                 {
                                     int i = Y;
                                     while (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
@@ -374,7 +380,7 @@ namespace Bomberman_client.GameClasses
             }
         }
 
-        public Bitmap GetAnimState()
+        public Bitmap GetAnimState(Bitmap texture)
         {
             lock (texture)
             {
@@ -448,8 +454,8 @@ namespace Bomberman_client.GameClasses
         }
 
 
-        public Player(Point location, Image sprite, Size spriteSize, string name, DeleteObjectFunc deletePlayerFunc, Image bombSprite, Size bombSize, DeleteObjectFunc deleteBombFunc, int id)
-            : base(location, sprite, spriteSize, deletePlayerFunc)
+        public Player(Point location, Size spriteSize, string name, DeleteObjectFunc deletePlayerFunc, Image bombSprite, Size bombSize, DeleteObjectFunc deleteBombFunc, int id)
+            : base(location, spriteSize, deletePlayerFunc)
         {
             thisName = name;
             isMoved = false;
@@ -459,8 +465,9 @@ namespace Bomberman_client.GameClasses
             maxCountBombs = 2;
             currCountBombs = 0;
             this.id = id;
+            this.currSpriteOffset = 0;
 
-            bombFactory = new BombFactory(bombSprite, bombSize, deleteBombFunc, this);
+            bombFactory = new BombFactory(bombSize, deleteBombFunc, this);
         }
     }
 }

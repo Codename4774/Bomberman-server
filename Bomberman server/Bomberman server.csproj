@@ -57,6 +57,7 @@
     <Compile Include="KindMessages.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="MessageAnalyzer.cs" />
+    <Compile Include="ObjectsLists.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScriptEngine.cs" />

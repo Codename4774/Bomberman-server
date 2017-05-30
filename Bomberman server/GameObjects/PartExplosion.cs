@@ -7,19 +7,24 @@ using System.Drawing;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class PartExplosion
     {
         private int countStates;
         private int currState;
-        private int currSpriteOffset;
-        public Bitmap texture;
-        public Bitmap currTexture;
+        public int currSpriteOffset;
+        //public Bitmap texture;
+        //public Bitmap currTexture;
         public Size size;
         public Point location;
         private Explosion.OnEndAllExplosionFunc onEndFunc;
+        public Explosion.KindExplosionTexture kindExplosion;
+        public enum KindExplosionTexture { explosionTextureHorizontalMiddle, explosionTextureLeftEdge, explosionTextureRightEdge, explosionTextureVerticalMiddle, explosionTextureUpEdge, explosionTextureBottomEdge }
+
         public void ChangeState()
         {
-            currTexture = new Bitmap(texture.Clone(new Rectangle(new Point(currSpriteOffset, 0), size), texture.PixelFormat));
+            //currTexture = new Bitmap(texture.Clone(new Rectangle(new Point(currSpriteOffset, 0), size), texture.PixelFormat));
+
             currSpriteOffset += size.Width;
             currState++;
         }
@@ -51,9 +56,10 @@ namespace Bomberman_client.GameClasses
                 }
             }
         }
-        public PartExplosion(Image texture, Size size, Point location, int countStates, Explosion.OnEndAllExplosionFunc onEndFunc)
+        public PartExplosion(Explosion.KindExplosionTexture kindExplosion, Size size, Point location, int countStates, Explosion.OnEndAllExplosionFunc onEndFunc)
         {
-            this.texture = new Bitmap((Bitmap)(texture as Bitmap).Clone());
+            this.kindExplosion = kindExplosion;
+            //this.texture = new Bitmap((Bitmap)(texture as Bitmap).Clone());
             this.size = size;
             this.countStates = countStates;
             this.onEndFunc = onEndFunc;

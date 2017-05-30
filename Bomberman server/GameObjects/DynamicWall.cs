@@ -7,6 +7,7 @@ using System.Drawing;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class DynamicWall : PhysicalObject
     {
         public bool isBlowedUpNow = false;
@@ -24,8 +25,8 @@ namespace Bomberman_client.GameClasses
             }
             return false;
         }
-        public DynamicWall(Point location, Image texture, Size size)
-            : base(location, texture, size)
+        public DynamicWall(Point location, Size size)
+            : base(location, size)
         { 
         }
     }

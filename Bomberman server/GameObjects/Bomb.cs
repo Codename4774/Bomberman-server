@@ -9,11 +9,12 @@ using System.Timers;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class Bomb : PhysicalObject
     {
         private int areaOfExplosion;
-        private Timer timerExplosion;
         public Player owner;
+        public bool isBlowedUp;
 
         public void TimerEvent(object sender, EventArgs e)
         {
@@ -29,15 +30,17 @@ namespace Bomberman_client.GameClasses
                 }
             }
         }
-        public Bomb(Point location, Image texture, int areaOfExplosion, DeleteObjectFunc deleteBombFunc, Player owner)
-            : base(location, texture)
+        public Bomb(Point location, int areaOfExplosion, DeleteObjectFunc deleteBombFunc, Player owner)
+            : base(location)
         {
-            timerExplosion = new Timer();
+
+            Timer timerExplosion = new Timer();
             timerExplosion.Interval = 3000;
             this.deleteObjectFunc = deleteBombFunc;
             timerExplosion.Elapsed += TimerEvent;
             this.areaOfExplosion = areaOfExplosion;
             timerExplosion.Enabled = true;
+            this.isBlowedUp = false;
             this.owner = owner;
         }
     }

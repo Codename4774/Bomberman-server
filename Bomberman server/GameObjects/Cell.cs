@@ -9,6 +9,7 @@ using System.IO;
 
 namespace Bomberman_client.GameClasses
 {
+    [Serializable]
     public class Cell
     {
         private Point location;
@@ -34,7 +35,7 @@ namespace Bomberman_client.GameClasses
                 return location.Y;
             }
         }
-        public Image texture { get; set; }
+        //public Image texture { get; set; }
         public byte[] Serialize(BinaryFormatter serializer)
         {
             MemoryStream data = new MemoryStream();
@@ -42,9 +43,9 @@ namespace Bomberman_client.GameClasses
 
             return data.ToArray();
         }
-        public Cell(Point location, Image texture)
+        public Cell(Point location)
         {
-            this.texture = texture;
+            //this.texture = texture;
 
             this.location = location;
         }

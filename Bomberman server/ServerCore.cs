@@ -66,12 +66,12 @@ namespace Bomberman_server
 
         public void SendData()
         {
-            lock (gameCoreServer.buffer)
+            lock (gameCoreServer.objectsList)
             {
 
                 MemoryStream data = new MemoryStream();
-                serializer.Serialize(data, gameCoreServer.buffer);
-
+                serializer.Serialize(data, gameCoreServer.objectsList);
+                data.Flush();
                 foreach (Socket client in socketsList)
                 {
                     SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
@@ -106,7 +106,7 @@ namespace Bomberman_server
         }
         private void AddPlayerToList()
         {
-            gameCoreServer.players.Add(new Player(new Point(0, 0), gameCoreServer.playerTexture, gameCoreServer.playerSize, "", gameCoreServer.DeletePlayerFromField, gameCoreServer.bombTexture, gameCoreServer.bombSize, gameCoreServer.DeleteBombFromField, idCounter - 1));
+            gameCoreServer.objectsList.players.Add(new Player(new Point(0, 0), gameCoreServer.playerSize, "", gameCoreServer.DeletePlayerFromField, gameCoreServer.bombTexture, gameCoreServer.bombSize, gameCoreServer.DeleteBombFromField, idCounter - 1));
         }
         public void StartListen(object state)
         {

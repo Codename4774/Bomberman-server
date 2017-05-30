@@ -25,7 +25,6 @@ namespace Bomberman_client.GameClasses
                 currTimer.Dispose();
                 currTimer = null;
                 onEnd(obj);
-                obj.ClearSprites();
             }
             else
             {

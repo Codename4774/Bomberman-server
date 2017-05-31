@@ -31,25 +31,22 @@ namespace Bomberman_server
         public readonly List<Socket> socketsList;
         public GameCoreServer gameCoreServer;
         public BinaryFormatter serializer;
-        public MessageAnalyzer messageAnalyzer;
+        public MessageAnalyzerServer messageAnalyzer;
         private int idCounter;
         
 
         public ServerCore(string host, int portControl, int portData, int maxLengthQueue, int sendFrequency)
         {
-            //this.ipHost = Dns.GetHostEntry(host);
-
             this.portControl = portControl;
             this.maxLengthQueue = maxLengthQueue;
             this.ipAdress = IPAddress.Parse(host);
-            this.bufferSize = 2048;
+            this.bufferSize = 1024 * 1024;
             this.idCounter = 0;
 
 
             this.ipEndPointControl = new IPEndPoint(ipAdress, portControl);
 
             this.socketListener = new Socket(ipAdress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            //this.socketSender = new UdpClient(portData);
 
             this.socketsList = new List<Socket>();
             this.serializer = new BinaryFormatter();
@@ -75,6 +72,7 @@ namespace Bomberman_server
                 foreach (Socket client in socketsList)
                 {
                     SocketAsyncEventArgs sendArgs = new SocketAsyncEventArgs();
+                    sendArgs.UserToken = temp;
                     sendArgs.SetBuffer(data.ToArray(), 0, data.ToArray().Length);
                     client.SendAsync(sendArgs);
                 }

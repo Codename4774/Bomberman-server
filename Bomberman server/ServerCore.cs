@@ -35,22 +35,21 @@ namespace Bomberman_server
         private int idCounter;
         
 
-        public ServerCore(int portControl, int portData, int maxLengthQueue, int sendFrequency)
+        public ServerCore(string host, int portControl, int portData, int maxLengthQueue, int sendFrequency)
         {
-            this.ipHost = Dns.GetHostEntry("localhost");
+            //this.ipHost = Dns.GetHostEntry(host);
 
             this.portControl = portControl;
             this.maxLengthQueue = maxLengthQueue;
-            this.ipAdress = ipHost.AddressList[0];
+            this.ipAdress = IPAddress.Parse(host);
             this.bufferSize = 2048;
             this.idCounter = 0;
 
 
             this.ipEndPointControl = new IPEndPoint(ipAdress, portControl);
-            this.ipEndPointData = new IPEndPoint(IPAddress.Any, portData);
 
             this.socketListener = new Socket(ipAdress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-            this.socketSender = new UdpClient(portData);
+            //this.socketSender = new UdpClient(portData);
 
             this.socketsList = new List<Socket>();
             this.serializer = new BinaryFormatter();
@@ -104,9 +103,11 @@ namespace Bomberman_server
             idCounter++;
             client.SendAsync(sendArgs);
         }
-        private void AddPlayerToList()
+        private void AddPlayerToList(string playerName)
         {
-            gameCoreServer.objectsList.players.Add(new Player(new Point(0, 0), gameCoreServer.playerSize, "", gameCoreServer.DeletePlayerFromField, gameCoreServer.bombTexture, gameCoreServer.bombSize, gameCoreServer.DeleteBombFromField, idCounter - 1));
+            Point newLocation = gameCoreServer.spawnPoints[gameCoreServer.randomGen.Next(gameCoreServer.spawnPoints.Count - 1)];
+
+            gameCoreServer.objectsList.players.Add(new Player(newLocation, gameCoreServer.playerSize, playerName, gameCoreServer.DeletePlayerFromField, gameCoreServer.bombSize, gameCoreServer.DeleteBombFromField, idCounter - 1));
         }
         public void StartListen(object state)
         {
@@ -118,11 +119,16 @@ namespace Bomberman_server
                 Console.WriteLine("New user connected to the server");
 
                 socketsList.Add(newClient);
-                SendId(newClient);
-                AddPlayerToList();
-                IPEndPoint tempEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                EndPoint temp = (EndPoint)tempEndPoint;
+
                 byte[] buffer = new byte[bufferSize];
+                newClient.Receive(buffer);
+                MemoryStream playerNameStream = new MemoryStream(buffer);
+                string playerName = (string)serializer.Deserialize(playerNameStream);
+                SendId(newClient);
+                AddPlayerToList(playerName);
+                //IPEndPoint tempEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                //EndPoint temp = (EndPoint)tempEndPoint;
+
                 SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
                 eventArgs.Completed += ReceiveCallback;
 

@@ -53,11 +53,20 @@ namespace Bomberman_client
                                 {
                                     Player searchedPlayer = FindPlayer(idClient);
 
-                                    searchedPlayer.X = 20;
-                                    searchedPlayer.Y = 20;
-                                    //searchedPlayer.texture = gameCoreServer.playerTexture;
-                                    searchedPlayer.IsDying = false;
-                                    searchedPlayer.IsDead = false;
+                                    if (searchedPlayer.IsDead)
+                                    {
+                                        int nextPos = gameCoreServer.randomGen.Next(gameCoreServer.spawnPoints.Count - 1);
+                                        while (searchedPlayer.prevLocation == (nextPos = gameCoreServer.randomGen.Next(gameCoreServer.spawnPoints.Count - 1)))
+                                        {
+                                        }
+                                        searchedPlayer.prevLocation = nextPos;
+                                        Point newLocation = gameCoreServer.spawnPoints[nextPos];
+
+                                        searchedPlayer.X = newLocation.X;
+                                        searchedPlayer.Y = newLocation.Y;
+                                        searchedPlayer.IsDying = false;
+                                        searchedPlayer.IsDead = false;
+                                    }
                                 }
                                 break;
                             case (int)KindMessages.KindPlayerMessages.Death:
@@ -77,7 +86,7 @@ namespace Bomberman_client
                                 break;
                             case (int)KindMessages.KindPlayerMessages.Connect:
                                 {
-                                    gameCoreServer.objectsList.players.Add(new Player(new Point(20, 20), gameCoreServer.playerSize, "", gameCoreServer.DeletePlayerFromField, gameCoreServer.bombTexture, gameCoreServer.bombSize, gameCoreServer.ExplosionBomb, idClient));
+                                    //gameCoreServer.objectsList.players.Add(new Player(new Point(20, 20), gameCoreServer.playerSize, "", gameCoreServer.DeletePlayerFromField, gameCoreServer.bombTexture, gameCoreServer.bombSize, gameCoreServer.ExplosionBomb, idClient));
                                 }
                                 break;
                             case (int)KindMessages.KindPlayerMessages.Disconnect:

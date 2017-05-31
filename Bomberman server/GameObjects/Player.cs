@@ -19,9 +19,11 @@ namespace Bomberman_client.GameClasses
         public Direction prevDirection { get; set; }
         public enum AnimState { TURNUP, TURNUP1, TURNUP2, TURNDOWN, TURNDOWN1, TURNDOWN2, TURNLEFT, TURNLEFT1, TURNLEFT2, TURNRIGHT, TURNRIGHT1, TURNRIGHT2 };
         public AnimState currAnimState;
-        public enum BombLevel { low = 3, medium = 4, high = 5 };
+        public enum BombLevel { low = 2, medium = 3, high = 4 };
 
         public BombLevel bombLevel = BombLevel.low;
+        [NonSerialized]
+        public int prevLocation;
 
         private int step = 4;
         public readonly int maxCountBombs;
@@ -90,7 +92,7 @@ namespace Bomberman_client.GameClasses
                                 if (map.MapMatrix[Y - 1][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT )
                                 {
                                     int i = Y;
-                                    while (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
+                                    while ( (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT))
                                     {
                                         i++;
                                     }
@@ -108,7 +110,7 @@ namespace Bomberman_client.GameClasses
                                 if (map.MapMatrix[Y + size.Height][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                 {
                                     int i = Y + size.Height;
-                                    while (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
+                                    while ( (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT))
                                     {
                                         i--;
                                     }
@@ -126,7 +128,7 @@ namespace Bomberman_client.GameClasses
                                 if (map.MapMatrix[i][X - 1] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                 {
                                     int j = X;
-                                    while (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
+                                    while ((map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT))
                                     {
                                         j++;
                                     }
@@ -144,7 +146,7 @@ namespace Bomberman_client.GameClasses
                                 if (map.MapMatrix[i][X + size.Width] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                 {
                                     int j = X + size.Width;
-                                    while (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
+                                    while ((map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT))
                                     {
                                         j--;
                                     }
@@ -454,7 +456,7 @@ namespace Bomberman_client.GameClasses
         }
 
 
-        public Player(Point location, Size spriteSize, string name, DeleteObjectFunc deletePlayerFunc, Image bombSprite, Size bombSize, DeleteObjectFunc deleteBombFunc, int id)
+        public Player(Point location, Size spriteSize, string name, DeleteObjectFunc deletePlayerFunc, Size bombSize, DeleteObjectFunc deleteBombFunc, int id)
             : base(location, spriteSize, deletePlayerFunc)
         {
             thisName = name;
@@ -466,6 +468,7 @@ namespace Bomberman_client.GameClasses
             currCountBombs = 0;
             this.id = id;
             this.currSpriteOffset = 0;
+            this.prevLocation = 0;
 
             bombFactory = new BombFactory(bombSize, deleteBombFunc, this);
         }

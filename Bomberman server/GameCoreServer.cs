@@ -36,167 +36,51 @@ namespace Bomberman_client.GameClasses
         public Size explosionSize;
         [NonSerialized]
         public Size wallSize;
-       [NonSerialized]
-        public Bitmap bombTexture;
         [NonSerialized]
-        public Bitmap bombExplosionTexture;
+        public List<Point> spawnPoints;
         [NonSerialized]
-        public Bitmap playerTexture;
-        [NonSerialized]
-        public Bitmap playerDieTexture;
-        [NonSerialized]
-        public Bitmap staticWallTexture;
-        [NonSerialized]
-        public Bitmap dynamicWallTexture;
-        [NonSerialized]
-        public Bitmap dynamicWallDestroyTexture;
-        [NonSerialized]
-        public List<Bitmap> explosionsTexture;
-/*
-        public void RedrawFunc()
-        {
-            currBuffer.Render();
-            currBuffer.Graphics.Clear(buffColor);
-            ChangeBuffer();
-            CalcBuff();
-        }
-        public void CalcBuff()
-        {
-
-            foreach (Player player in objectsList.players)
-            {
-                if (!player.IsDead)
-                {
-                    lock (player)
-                    {
-                        if (!player.IsDying)
-                        {
-                            currBuffer.Graphics.DrawImage(player.GetAnimState(playerTexture), player.X, player.Y);
-                        }
-                        else
-                        {
-                            lock (playerDieTexture)
-                            {
-
-                                currBuffer.Graphics.DrawImage(playerDieTexture, player.X, player.Y, new Rectangle(new Point(player.currSpriteOffset, 0), player.size), GraphicsUnit.Pixel);
-                            }
-                            //currBuffer.Graphics.DrawImage(player.texture, player.X, player.Y);
-
-                        }
-                    }
-                }
-            }
-            lock (objectsList.bombs)
-            {
-                for (int i = 0; i < objectsList.bombs.Count; i++)
-                {
-                    lock (objectsList.bombs[i])
-                    {
-                        lock (bombTexture)
-                        {
-                            if (objectsList.bombs[i].isBlowedUp)
-                            {
-                                currBuffer.Graphics.DrawImage(bombExplosionTexture, objectsList.bombs[i].X, objectsList.bombs[i].Y, new Rectangle(new Point(objectsList.bombs[i].currSpriteOffset, 0), objectsList.bombs[i].size), GraphicsUnit.Pixel);
-                            }
-                            else
-                            {
-                                currBuffer.Graphics.DrawImage(bombTexture, objectsList.bombs[i].X, objectsList.bombs[i].Y);
-                            }
-                        }
-                    }
-                }
-            }
-            for (int i = 0; i < objectsList.explosions.Count; i++)
-            {
-                lock (objectsList.explosions[i])
-                {
-                    objectsList.explosions[i].DrawExplosion(currBuffer, explosionsTexture);
-                }
-            }
-            for (int i = 0; i < objectsList.dynamicWalls.Count; i++)
-            {
-                lock (objectsList.dynamicWalls[i])
-                {
-                    if (!objectsList.dynamicWalls[i].isBlowedUpNow)
-                    {
-                        lock (dynamicWallTexture)
-                        {
-                            currBuffer.Graphics.DrawImage(dynamicWallTexture, objectsList.dynamicWalls[i].X, objectsList.dynamicWalls[i].Y);
-                        }
-                    }
-                    else
-                    {
-                        lock (dynamicWallDestroyTexture)
-                        {
-                            currBuffer.Graphics.DrawImage(dynamicWallDestroyTexture, objectsList.dynamicWalls[i].X, objectsList.dynamicWalls[i].Y, new Rectangle(new Point(objectsList.dynamicWalls[i].currSpriteOffset, 0), objectsList.dynamicWalls[i].size), GraphicsUnit.Pixel);
-                        }
-                    }
-                }
-            }
-            for (int i = 0; i < objectsList.staticWalls.Count; i++)
-            {
-                lock (objectsList.staticWalls[i])
-                {
-                    lock (staticWallTexture)
-                    {
-                        currBuffer.Graphics.DrawImage(staticWallTexture, objectsList.staticWalls[i].X, objectsList.staticWalls[i].Y);
-                    }
-                }
-            }
-        }
-
-        public void ChangeBuffer()
-        {
-            if (currBuffer == buffer1)
-            {
-                currBuffer = buffer2;
-            }
-            else
-            {
-                currBuffer = buffer1;
-            }
-        }
-        */
+        public Random randomGen;
         public void ChangePhysicalState()
         {
-            foreach (Player player in objectsList.players)
+            lock (objectsList)
             {
-                if (!player.IsDead)
+                foreach (Player player in objectsList.players)
                 {
-                    player.ChangeMapMatrix(map);
+                    if (!player.IsDead)
+                    {
+                        player.ChangeMapMatrix(map);
+                    }
                 }
-            }
-            for (int i = 0; i < objectsList.bombs.Count; i++)
-            {
-                objectsList.bombs[i].ChangeMapMatrix(map);
-            }
-            for (int i = 0; i < objectsList.explosions.Count; i++)
-            {
-                objectsList.explosions[i].ChangePhysicalMap(map);
-            }
-            for (int i = 0; i < objectsList.dynamicWalls.Count; i++)
-            {
-                if ((objectsList.dynamicWalls[i].isWallBlowedUp(map)) && (!objectsList.dynamicWalls[i].isBlowedUpNow))
+                for (int i = 0; i < objectsList.bombs.Count; i++)
                 {
-                    objectsList.dynamicWalls[i].isBlowedUpNow = true;
-                    StartDestroingDynamicWall(objectsList.dynamicWalls[i]);
+                    objectsList.bombs[i].ChangeMapMatrix(map);
                 }
-                objectsList.dynamicWalls[i].ChangeMapMatrix(map);
-            }
-            for (int i = 0; i < objectsList.staticWalls.Count; i++)
-            {
-                objectsList.staticWalls[i].ChangeMapMatrix(map);
-            }
-            foreach (Player player in objectsList.players)
-            {
-                if (player.isPlayerBlowedUp(map))
+                for (int i = 0; i < objectsList.explosions.Count; i++)
                 {
-                    onDeathPlayer(player);
+                    objectsList.explosions[i].ChangePhysicalMap(map);
+                }
+                for (int i = 0; i < objectsList.dynamicWalls.Count; i++)
+                {
+                    if ((objectsList.dynamicWalls[i].isWallBlowedUp(map)) && (!objectsList.dynamicWalls[i].isBlowedUpNow))
+                    {
+                        objectsList.dynamicWalls[i].isBlowedUpNow = true;
+                        StartDestroingDynamicWall(objectsList.dynamicWalls[i]);
+                    }
+                    objectsList.dynamicWalls[i].ChangeMapMatrix(map);
+                }
+                for (int i = 0; i < objectsList.staticWalls.Count; i++)
+                {
+                    objectsList.staticWalls[i].ChangeMapMatrix(map);
+                }
+                foreach (Player player in objectsList.players)
+                {
+                    if (player.isPlayerBlowedUp(map))
+                    {
+                        onDeathPlayer(player);
+                    }
                 }
             }
         }
-
-
 
         public void TimerEvent(object sender, EventArgs e)
         {
@@ -204,7 +88,6 @@ namespace Bomberman_client.GameClasses
             {
                 player.OnMove(map);
             }
-            //RedrawFunc();
             sendFunc();
             map.ClearCurrMatrix();
             map.SwitchMatrix();
@@ -275,32 +158,59 @@ namespace Bomberman_client.GameClasses
             }
         }
 
-        private void spawnWalls()
+        private void GenerateWalls()
         {
-            objectsList.staticWalls.Add(new PhysicalObject(new Point(50, 50), wallSize));
-            objectsList.dynamicWalls.Add(new DynamicWall(new Point(100, 100), wallSize));
-            objectsList.dynamicWalls.Add(new DynamicWall(new Point(124, 100), wallSize));
-            objectsList.dynamicWalls.Add(new DynamicWall(new Point(148, 100), wallSize));
-        }
+            const int sizeCell = 24;
 
-        private void LoadImages(string resDir)
-        {
-            this.bombTexture = new Bitmap(resDir + "Bomb\\bomb.png");
-            this.bombExplosionTexture = new Bitmap(resDir + "Bomb\\BombExplosion.png");
-            this.playerTexture = new Bitmap(resDir + "Player\\bomberman_new.png");
-            this.playerDieTexture = new Bitmap(resDir + "Player\\bomberman_death.png");
-            //public enum KindExplosionTexture { explosionTextureHorizontalMiddle, explosionTextureLeftEdge, explosionTextureRightEdge, explosionTextureVerticalMiddle, explosionTextureUpEdge, explosionTextureBottomEdge, explosionTextureCenter };
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(2 * sizeCell, 0 * sizeCell), 4, MapGenerator.LineDirection.Horizontal, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(3 * sizeCell, 1 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(1 * sizeCell, 2 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(2 * sizeCell, 2 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(0 * sizeCell, 3 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(1 * sizeCell, 5 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(3 * sizeCell, 7 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(3 * sizeCell, 11 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(4 * sizeCell, 13 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(5 * sizeCell, 13 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(5 * sizeCell, 5 * sizeCell), 5, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(6 * sizeCell, 5 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(7 * sizeCell, 1 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(7 * sizeCell, 8 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(8 * sizeCell, 9 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(9 * sizeCell, 0 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(9 * sizeCell, 10 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(10 * sizeCell, 8 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(10 * sizeCell, 14 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(11 * sizeCell, 0 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(12 * sizeCell, 3 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(12 * sizeCell, 6 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(12 * sizeCell, 12 * sizeCell), 4, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(13 * sizeCell, 0 * sizeCell), 4, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(13 * sizeCell, 5 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(13 * sizeCell, 11 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(15 * sizeCell, 4 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.dynamicWalls.AddRange(MapGenerator.GenerateLineDynamicWall(new Point(15 * sizeCell, 8 * sizeCell), 3, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(1 * sizeCell, 3 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(0 * sizeCell, 8 * sizeCell), 5, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(1 * sizeCell, 8 * sizeCell), 5, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(2 * sizeCell, 1 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(4 * sizeCell, 7 * sizeCell), 6, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(4 * sizeCell, 4 * sizeCell), 4, MapGenerator.LineDirection.Horizontal, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(5 * sizeCell, 1 * sizeCell), 1, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(7 * sizeCell, 7 * sizeCell), 11, MapGenerator.LineDirection.Horizontal, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(8 * sizeCell, 10 * sizeCell), 4, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(11 * sizeCell, 3 * sizeCell), 4, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(11 * sizeCell, 9 * sizeCell), 5, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(17 * sizeCell, 8 * sizeCell), 6, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(14 * sizeCell, 11 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(15 * sizeCell, 11 * sizeCell), 2, MapGenerator.LineDirection.Vertical, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(14 * sizeCell, 2 * sizeCell), 3, MapGenerator.LineDirection.Horizontal, wallSize));
+            objectsList.staticWalls.AddRange(MapGenerator.GenerateLineStaticWall(new Point(14 * sizeCell, 3 * sizeCell), 3, MapGenerator.LineDirection.Horizontal, wallSize));
+            spawnPoints.Add(new Point(0 * sizeCell, 0 * sizeCell));
+            spawnPoints.Add(new Point(0 * sizeCell, 14 * sizeCell));
+            spawnPoints.Add(new Point(17 * sizeCell, 0 * sizeCell));
+            spawnPoints.Add(new Point(14 * sizeCell, 13 * sizeCell));
 
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionHorizontalMiddle.png"));
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionLeftEdge.png"));
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionRightEdge.png"));
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionVerticalMiddle.png"));
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionUpEdge.png"));
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionBottomEdge.png"));
-            this.explosionsTexture.Add(new Bitmap(resDir + "Explosion\\ExplosionCenter.png"));
-            this.staticWallTexture = new Bitmap(resDir + "Walls\\StaticWall.png");
-            this.dynamicWallTexture = new Bitmap(resDir + "Walls\\DynamicWall.png");
-            this.dynamicWallDestroyTexture = new Bitmap(resDir + "Walls\\DynamicWallDestroy.png");
         }
 
         public void startCore()
@@ -315,15 +225,16 @@ namespace Bomberman_client.GameClasses
         {
             this.map = new PhysicalMap(width, height);
             objectsList = new ObjectsLists();
+            spawnPoints = new List<Point>();
             this.sendFunc = sendFunc;
 
             timer = new Timer();
             delay = 60;
             timer.Interval = delay;
             timer.Elapsed += TimerEvent;
+            randomGen = new Random();
 
             scriptEngine = new ScriptEngine();
-            this.explosionsTexture = new List<Bitmap>();
 
             this.playerSize = playerSize;
             this.bombSize = bombSize;
@@ -331,8 +242,7 @@ namespace Bomberman_client.GameClasses
             this.wallSize = wallSize;
             this.playerOnDeathSize = playerOnDeathSize;
 
-            LoadImages(dirResources);
-            spawnWalls();
+            GenerateWalls();
         }
     }
 }

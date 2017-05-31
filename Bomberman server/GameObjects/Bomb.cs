@@ -18,6 +18,8 @@ namespace Bomberman_client.GameClasses
 
         public void TimerEvent(object sender, EventArgs e)
         {
+            (sender as Timer).Enabled = false;
+            (sender as Timer).Dispose();
             deleteObjectFunc(this);            
         }
         public virtual void ChangeMapMatrix(PhysicalMap PhysicalMap)

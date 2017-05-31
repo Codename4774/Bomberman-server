@@ -73,7 +73,7 @@ namespace Bomberman_client.GameClasses
                         {
                             for (int j = X; j < X + size.Width; j++)
                             {
-                                for (int k = Y - 1; (k < Y + size.Height) && (k < map.Height); k++)
+                                for (int k = Y; (k < Y + size.Height) && (k < map.Height); k++)
                                 {
                                     if (map.MapMatrix[k][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                     {
@@ -94,7 +94,7 @@ namespace Bomberman_client.GameClasses
                         {
                             for (int j = X; j < X + size.Width; j++)
                             {
-                                for (int k = Y + size.Height + 1; (k > Y) && (k > 0); k--)
+                                for (int k = Y + size.Height; (k > Y) && (k > 0); k--)
                                 {
                                     if (map.MapMatrix[k][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                     {
@@ -115,7 +115,7 @@ namespace Bomberman_client.GameClasses
                         {
                             for (int i = Y; i < Y + size.Height; i++)
                             {
-                                for (int k = X - 1; (k < X + size.Width) && (k < map.Width); k++)
+                                for (int k = X; (k < X + size.Width) && (k < map.Width); k++)
                                 {
                                     if (map.MapMatrix[i][k] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                     {
@@ -124,7 +124,7 @@ namespace Bomberman_client.GameClasses
                                         {
                                             j++;
                                         }
-                                        newLocation.X = j - 1;
+                                        newLocation.X = j;
                                         newLocation.Y = Y;
                                         return true;
                                     }
@@ -136,11 +136,11 @@ namespace Bomberman_client.GameClasses
                         {
                             for (int i = Y; i < Y + size.Height; i++)
                             {
-                                for (int k = X + size.Width - 1; (k > X) && (k > 0); k--)
+                                for (int k = X + size.Width; (k > X) && (k > 0); k--)
                                 {
                                     if (map.MapMatrix[i][k] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                     {
-                                        int j = X + size.Width - 1;
+                                        int j = X + size.Width;
                                         while (map.MapMatrix[i][j] == (int)PhysicalMap.KindOfArea.PHYSICACOBJECT)
                                         {
                                             j--;
@@ -173,7 +173,7 @@ namespace Bomberman_client.GameClasses
             {
                 if ( (location.X - size.Width * (i + 1)) > 0)
                 {
-                    if (!canWePlaceExplosion(location.X - size.Width * (i + 1), location.Y, map, ExplosionDirection.LEFT))
+                    if (!canWePlaceExplosion(location.X - size.Width * (i), location.Y, map, ExplosionDirection.LEFT))
                     {
                         if (i < radius - 1)
                         {
@@ -209,7 +209,7 @@ namespace Bomberman_client.GameClasses
             {
                 if ((location.X + size.Width * (i + 1) ) < map.Width)
                 {
-                    if (!canWePlaceExplosion(location.X + size.Width * (i + 1), location.Y, map, ExplosionDirection.RIGHT))
+                    if (!canWePlaceExplosion(location.X + size.Width * (i), location.Y, map, ExplosionDirection.RIGHT))
                     {
                         if (i < radius - 1)
                         {
@@ -245,7 +245,7 @@ namespace Bomberman_client.GameClasses
             {
                 if ((location.Y - size.Height * (i + 1)) > 0)
                 {
-                    if (!canWePlaceExplosion(location.X, location.Y - size.Height * (i + 1), map, ExplosionDirection.UP))
+                    if (!canWePlaceExplosion(location.X, location.Y - size.Height * (i), map, ExplosionDirection.UP))
                     {
                         if (i < radius - 1)
                         {
@@ -283,7 +283,7 @@ namespace Bomberman_client.GameClasses
             {
                 if ((location.Y + size.Height * (i + 1)) < map.Height)
                 {
-                    if (!canWePlaceExplosion(location.X, location.Y + size.Height * (i + 1), map, ExplosionDirection.DOWN))
+                    if (!canWePlaceExplosion(location.X, location.Y + size.Height * (i), map, ExplosionDirection.DOWN))
                     {
                         if (i < radius - 1)
                         {

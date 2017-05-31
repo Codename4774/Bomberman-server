@@ -43,30 +43,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ExplosionScript.cs" />
     <Compile Include="GameCoreServer.cs" />
-    <Compile Include="GameInterfaces\IMovable.cs" />
-    <Compile Include="GameObjects\Bomb.cs" />
-    <Compile Include="GameObjects\BombFactory.cs" />
-    <Compile Include="GameObjects\Cell.cs" />
-    <Compile Include="GameObjects\DynamicWall.cs" />
-    <Compile Include="GameObjects\Explosion.cs" />
-    <Compile Include="GameObjects\PartExplosion.cs" />
-    <Compile Include="GameObjects\PhysicalObject.cs" />
-    <Compile Include="GameObjects\Player.cs" />
-    <Compile Include="KindMessages.cs" />
-    <Compile Include="Map.cs" />
     <Compile Include="MapGenerator.cs" />
     <Compile Include="MessageAnalyzer.cs" />
-    <Compile Include="ObjectsLists.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ScriptEngine.cs" />
     <Compile Include="ServerCore.cs" />
-    <Compile Include="SimpleScript.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CommonClasses\CommonClasses\CommonClasses.csproj">
+      <Project>{b6d35e4a-d2eb-457d-a252-0c658bc5dd13}</Project>
+      <Name>CommonClasses</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

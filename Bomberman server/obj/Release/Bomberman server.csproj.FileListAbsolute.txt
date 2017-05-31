@@ -4,3 +4,5 @@ E:\my work\My Git dir\Bomberman server\Bomberman server\bin\Release\Bomberman se
 E:\my work\My Git dir\Bomberman server\Bomberman server\obj\Release\Bomberman server.exe
 E:\my work\My Git dir\Bomberman server\Bomberman server\obj\Release\Bomberman server.pdb
 E:\my work\My Git dir\Bomberman server\Bomberman server\obj\Release\Bomberman server.csprojResolveAssemblyReference.cache
+E:\my work\My Git dir\Bomberman server\Bomberman server\bin\Release\CommonClasses.dll
+E:\my work\My Git dir\Bomberman server\Bomberman server\bin\Release\CommonClasses.pdb

@@ -109,7 +109,6 @@ namespace Bomberman_client
                     }
                     break;
             }
-
         }
         public MessageAnalyzer(GameCoreServer gameCoreServer)
         {

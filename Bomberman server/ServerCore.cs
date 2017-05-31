@@ -69,7 +69,8 @@ namespace Bomberman_server
             {
 
                 MemoryStream data = new MemoryStream();
-                serializer.Serialize(data, gameCoreServer.objectsList);
+                ObjectsLists temp = gameCoreServer.objectsList;
+                serializer.Serialize(data, temp);
                 data.Flush();
                 foreach (Socket client in socketsList)
                 {

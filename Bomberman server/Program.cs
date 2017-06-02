@@ -19,11 +19,11 @@ namespace Bomberman_server
             {
                 Console.WriteLine("IP:");
                 string IPAddress = Console.ReadLine();
-                ServerCore serverCore = new ServerCore(IPAddress, 11000, 11001, 5, 40);
+                ServerCore serverCore = new ServerCore(IPAddress, 11000, 5, 40);
                 serverCore.gameCoreServer = new GameCoreServer(width, height, new Size(24, 32), new Size(24, 24), new Size(24, 24), new Size(24, 24), new Size(24, 24), (Environment.CurrentDirectory + "\\Resources\\"), serverCore.SendData);
                 serverCore.messageAnalyzer = new MessageAnalyzerServer(serverCore.gameCoreServer);
                 Console.WriteLine("Server has been started. IP - {0}, port - {1}. To end from the program press enter", serverCore.ipAdress.ToString(), serverCore.portControl);
-                serverCore.gameCoreServer.startCore();
+                serverCore.gameCoreServer.StartCore();
                 ThreadPool.QueueUserWorkItem(serverCore.StartListen);
                 while (Console.ReadKey().Key != ConsoleKey.Enter)
                 { 

@@ -17,17 +17,13 @@ namespace Bomberman_server
 {
     public class ServerCore
     {
-        public readonly IPHostEntry ipHost;
         public readonly IPAddress ipAdress;
         public readonly int portControl;
-        public readonly int portData;
         
         public readonly int maxLengthQueue;
         private int bufferSize;
         public readonly IPEndPoint ipEndPointControl;
-        public readonly IPEndPoint ipEndPointData;
         public readonly Socket socketListener;
-        public readonly UdpClient socketSender;
         public readonly List<Socket> socketsList;
         public GameCoreServer gameCoreServer;
         public BinaryFormatter serializer;
@@ -35,7 +31,7 @@ namespace Bomberman_server
         private int idCounter;
         
 
-        public ServerCore(string host, int portControl, int portData, int maxLengthQueue, int sendFrequency)
+        public ServerCore(string host, int portControl, int maxLengthQueue, int sendFrequency)
         {
             this.portControl = portControl;
             this.maxLengthQueue = maxLengthQueue;
@@ -79,20 +75,27 @@ namespace Bomberman_server
             }
         }
 
-        private void AcceptCallback(object sender, SocketAsyncEventArgs e)
-        {
-
-        }
         private void ReceiveCallback(object sender, SocketAsyncEventArgs e)
         {
-            messageAnalyzer.AnalyzeMessage(e.Buffer);
-            byte[] buffer = new byte[bufferSize];
-            SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
-            eventArgs.Completed += ReceiveCallback;
+            bool isDisconnected = false;
+            messageAnalyzer.AnalyzeMessage(e.Buffer, ref isDisconnected);
+            if (isDisconnected)
+            {
+                (sender as Socket).Shutdown(SocketShutdown.Both);
+                (sender as Socket).Disconnect(true);
+                socketsList.Remove((sender as Socket));
+                (sender as Socket).Close();
+                Console.WriteLine("user has been disconnected");
+            }
+            else
+            {
+                byte[] buffer = new byte[bufferSize];
+                SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
+                eventArgs.Completed += ReceiveCallback;
 
-            eventArgs.SetBuffer(buffer, 0, bufferSize);
-            (sender as Socket).ReceiveAsync(eventArgs);
-
+                eventArgs.SetBuffer(buffer, 0, bufferSize);
+                (sender as Socket).ReceiveAsync(eventArgs);
+            }
         }
 
         private void SendId(Socket client)
@@ -125,8 +128,6 @@ namespace Bomberman_server
                 string playerName = (string)serializer.Deserialize(playerNameStream);
                 SendId(newClient);
                 AddPlayerToList(playerName);
-                //IPEndPoint tempEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                //EndPoint temp = (EndPoint)tempEndPoint;
 
                 SocketAsyncEventArgs eventArgs = new SocketAsyncEventArgs();
                 eventArgs.Completed += ReceiveCallback;

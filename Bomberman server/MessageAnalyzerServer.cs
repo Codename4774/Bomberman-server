@@ -27,7 +27,7 @@ public class MessageAnalyzerServer
         }
         return null;
     }
-    public void AnalyzeMessage(byte[] message)
+    public void AnalyzeMessage(byte[] message, ref bool isDisconnected)
     {
         int i = 0;
         int idClient = GetNextValue(message, ref i);
@@ -90,7 +90,9 @@ public class MessageAnalyzerServer
                             break;
                         case (int)KindMessages.KindPlayerMessages.Disconnect:
                             {
+
                                 gameCoreServer.objectsList.players.Remove(FindPlayer(idClient));
+                                isDisconnected = true;
                             }
                             break;
                         case (int)KindMessages.KindPlayerMessages.StopWalking:

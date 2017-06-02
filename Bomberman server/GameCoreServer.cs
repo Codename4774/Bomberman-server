@@ -76,7 +76,7 @@ namespace Bomberman_client.GameClasses
                 {
                     if (player.isPlayerBlowedUp(map))
                     {
-                        onDeathPlayer(player);
+                        OnDeathPlayer(player);
                     }
                 }
             }
@@ -94,7 +94,7 @@ namespace Bomberman_client.GameClasses
             ChangePhysicalState();
         }
 
-        public void onDeathPlayer(PhysicalObject player)
+        public void OnDeathPlayer(PhysicalObject player)
         {
             var temp = player as Player;
 
@@ -213,7 +213,7 @@ namespace Bomberman_client.GameClasses
 
         }
 
-        public void startCore()
+        public void StartCore()
         {
             timer.Start();
         }
